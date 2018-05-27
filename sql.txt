@@ -1,0 +1,35 @@
+BEGIN;
+--
+-- Create model Board
+--
+CREATE TABLE "boardsapp_board" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "name" varchar(30) NOT NULL UNIQUE, "description" varchar(100) NOT NULL);
+--
+-- Create model Post
+--
+CREATE TABLE "boardsapp_post" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "message" text NOT NULL, "created_at_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+--
+-- Create model Topic
+--
+CREATE TABLE "boardsapp_topic" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "subject" varchar(255) NOT NULL, "last_updated" datetime NOT NULL, "board_id" integer NOT NULL REFERENCES "boardsapp_board" ("id") DEFERRABLE INITIALLY DEFERRED, "starter_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+--
+-- Add field topic to post
+--
+ALTER TABLE "boardsapp_post" RENAME TO "boardsapp_post__old";
+CREATE TABLE "boardsapp_post" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "message" text NOT NULL, "created_at_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED, "topic_id" integer NOT NULL REFERENCES "boardsapp_topic" ("id") DEFERRABLE INITIALLY DEFERRED);
+INSERT INTO "boardsapp_post" ("id", "message", "created_at_id", "topic_id") SELECT "id", "message", "created_at_id", NULL FROM "boardsapp_post__old";
+DROP TABLE "boardsapp_post__old";
+CREATE INDEX "boardsapp_topic_board_id_31146d1b" ON "boardsapp_topic" ("board_id");
+CREATE INDEX "boardsapp_topic_starter_id_94a358a6" ON "boardsapp_topic" ("starter_id");
+CREATE INDEX "boardsapp_post_created_at_id_56fb28dd" ON "boardsapp_post" ("created_at_id");
+CREATE INDEX "boardsapp_post_topic_id_7b14bbd0" ON "boardsapp_post" ("topic_id");
+--
+-- Add field updated_at to post
+--
+ALTER TABLE "boardsapp_post" RENAME TO "boardsapp_post__old";
+CREATE TABLE "boardsapp_post" ("id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, "message" text NOT NULL, "created_at_id" integer NOT NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED, "topic_id" integer NOT NULL REFERENCES "boardsapp_topic" ("id") DEFERRABLE INITIALLY DEFERRED, "updated_at_id" integer NULL REFERENCES "auth_user" ("id") DEFERRABLE INITIALLY DEFERRED);
+INSERT INTO "boardsapp_post" ("id", "message", "created_at_id", "topic_id", "updated_at_id") SELECT "id", "message", "created_at_id", "topic_id", NULL FROM "boardsapp_post__old";
+DROP TABLE "boardsapp_post__old";
+CREATE INDEX "boardsapp_post_created_at_id_56fb28dd" ON "boardsapp_post" ("created_at_id");
+CREATE INDEX "boardsapp_post_topic_id_7b14bbd0" ON "boardsapp_post" ("topic_id");
+CREATE INDEX "boardsapp_post_updated_at_id_44beced1" ON "boardsapp_post" ("updated_at_id");
+COMMIT;
